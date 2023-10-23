@@ -34,12 +34,12 @@ void putTicketsInStock() {
  */
 void seller(){
     while (true){
-        emptyStock.acquire();   // lock the emptyStock's semaphore (lock the clients who wants to buy a ticket)
+        emptyStock.acquire();   // wait until the stock is empty and/or just decrement
 
         putTicketsInStock();
         cout << "Put " << PACK_OF_TICKETS << " in stocks" << endl;
 
-        fullStock.release();    // unlock the fullStock's semaphore (unlock the clients who are waiting)
+        fullStock.release();    // unlock the clients who are waiting and increment
 
         usleep(100000); // The seller refill the booth during 0.1 seconds
     }
@@ -55,8 +55,8 @@ void client(unsigned i){
         mtx.lock(); // Lock the other clients
         if (ticketsAvailable == 0){
             cout << "Waiting for ticket " << i << endl;
-            emptyStock.release();   // wait during the refillement
-            fullStock.acquire();
+            emptyStock.release();   // unlock/call the seller to refill the stock and increment
+            fullStock.acquire();   // wait during the refillement and/or just decrement
         }
         getTicketFromStock();
         mtx.unlock();   // Unlock the other clients
